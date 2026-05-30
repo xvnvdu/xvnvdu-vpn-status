@@ -366,6 +366,41 @@
                     calc(var(--p) * 3) 0 black;
             }
 
+            .blink-dot {
+                --px: 0.1em;
+                width: var(--px);
+                height: var(--px);
+                display: inline-block;
+                position: relative;
+                margin-right: 0.4em;
+                transform: translateY(calc(var(--px) * -2.6));
+
+                box-shadow:
+                    calc(var(--px) * 2) 0 #000,
+                    calc(var(--px) * 3) 0 #000,
+                    calc(var(--px) * 4) 0 #000,
+                    calc(var(--px) * 1) calc(var(--px) * 1) #000,
+                    calc(var(--px) * 2) calc(var(--px) * 1) #000,
+                    calc(var(--px) * 3) calc(var(--px) * 1) #000,
+                    calc(var(--px) * 4) calc(var(--px) * 1) #000,
+                    calc(var(--px) * 5) calc(var(--px) * 1) #000,
+                    calc(var(--px) * 1) calc(var(--px) * 2) #000,
+                    calc(var(--px) * 2) calc(var(--px) * 2) #000,
+                    calc(var(--px) * 3) calc(var(--px) * 2) #000,
+                    calc(var(--px) * 4) calc(var(--px) * 2) #000,
+                    calc(var(--px) * 5) calc(var(--px) * 2) #000,
+                    calc(var(--px) * 1) calc(var(--px) * 3) #000,
+                    calc(var(--px) * 2) calc(var(--px) * 3) #000,
+                    calc(var(--px) * 3) calc(var(--px) * 3) #000,
+                    calc(var(--px) * 4) calc(var(--px) * 3) #000,
+                    calc(var(--px) * 5) calc(var(--px) * 3) #000,
+                    calc(var(--px) * 2) calc(var(--px) * 4) #000,
+                    calc(var(--px) * 3) calc(var(--px) * 4) #000,
+                    calc(var(--px) * 4) calc(var(--px) * 4) #000;
+
+                animation: blink 1.5s infinite;
+            }
+
             .pixel-trophy {
                 --px: 3px;
                 width: var(--px);
@@ -915,8 +950,12 @@
                             statusCard.classList.remove("status-offline-card");
 
                         const statusEl = document.getElementById("val-status");
-                        statusEl.innerHTML =
-                            '<span class="blink-dot"></span> <span>ONLINE</span>';
+                        statusEl.innerHTML = `
+                          <span style="display:inline-flex; align-items:center; gap:0.4em;">
+                            <span class="blink-dot"></span>
+                            <span>ONLINE</span>
+                          </span>
+                        `;
                         document.getElementById("val-uptime").textContent =
                             data.uptime;
                         document.getElementById("val-ping").textContent =
