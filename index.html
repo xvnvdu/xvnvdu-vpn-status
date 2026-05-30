@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>VPN Status Terminal</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                font-family: "Press Start 2P";
+                box-sizing: border-box;
+            }
+
+            ::-webkit-scrollbar {
+                display: none;
+            }
+
+            body {
+                background-color: black;
+                color: #12cc12;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                margin: 0;
+                padding: 20px 0;
+                gap: 10px;
+                overflow: hidden;
+            }
+
+            .header-container {
+                background: transparent;
+                border: 3px solid #242424;
+                padding: 25px 30px;
+                margin: 0px 30px;
+            }
+
+            .header-container h1 {
+                font-size: 24px;
+                margin: 0 0 15px 0;
+                text-shadow: 0 0 10px #12cc12;
+            }
+
+            .instructions {
+                color: #525252;
+                font-size: 13px;
+                margin: 0;
+            }
+
+            .main-container {
+                position: relative;
+                background: transparent;
+                border: 3px solid #242424;
+                padding: 30px;
+                margin: 0px 30px 15px;
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .terminal-output {
+                color: #12cc12;
+                width: 100%;
+                line-height: 1.8;
+                font-size: 14px;
+                word-break: break-all;
+            }
+
+            .terminal-output div {
+                margin-bottom: 5px;
+            }
+
+            /* СЕТКА ВИДЖЕТОВ */
+            .dashboard-grid {
+                display: grid;
+                grid-template-columns: repeat(12, 1fr);
+                gap: 20px;
+                width: 100%;
+            }
+
+            .dashboard-grid > *,
+            .widget,
+            .section,
+            .peers-table-container {
+                min-width: 0;
+            }
+
+            .col-6 {
+                grid-column: span 6;
+            }
+            .col-5 {
+                grid-column: span 5;
+            }
+            .col-4 {
+                grid-column: span 4;
+            }
+            .col-3 {
+                grid-column: span 3;
+            }
+            .col-12 {
+                grid-column: span 12;
+            }
+
+            /* ВИДЖЕТЫ */
+            .widget {
+                border: 3px solid #242424;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                transition: border-color 0.5s;
+                overflow: hidden;
+            }
+
+            .widget:hover {
+                border: 3px solid #12cc12;
+                cursor: pointer;
+            }
+
+            .widget-label {
+                color: #525252;
+                font-size: 11px;
+                margin-bottom: 12px;
+                text-transform: uppercase;
+            }
+
+            .widget-value {
+                font-size: 14px;
+                color: #12cc12;
+                text-shadow: 0 0 10px #12cc12;
+                display: flex;
+                align-items: center;
+                word-break: break-all;
+            }
+
+            #val-endpoint {
+                overflow-wrap: anywhere;
+                word-break: break-all;
+            }
+
+            /* ВИДЖЕТ СТАТУСА */
+            .status-widget {
+                background-color: #12cc12 !important;
+                animation: glow 6s infinite ease-in-out;
+                color: #000000 !important;
+                border: none !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                height: 60px;
+                box-sizing: border-box;
+                padding: 0;
+            }
+
+            .status-widget .widget-value {
+                color: #000000 !important;
+                margin: 0 !important;
+                font-weight: bold;
+                font-size: 24px;
+                line-height: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding-top: 6px;
+                text-shadow: none;
+            }
+
+            @keyframes glow {
+                0%,
+                100% {
+                    box-shadow:
+                        0 0 10px #12cc12,
+                        0 0 15px #12cc12;
+                }
+                50% {
+                    box-shadow:
+                        0 0 15px #12cc12,
+                        0 0 20px #12cc12,
+                        0 0 25px #12cc12;
+                }
+            }
+
+            /* СЕКЦИИ */
+            .section {
+                border-left: 1px solid #12cc12;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .section-title {
+                padding: 6px 10px;
+                color: black;
+                align-items: center;
+                background: #12cc12;
+                box-shadow:
+                    0 0 5px #12cc12,
+                    0 0 10px #12cc12,
+                    0 0 25px #12cc12;
+                font-size: 16px;
+            }
+
+            .section-content {
+                margin-left: 20px;
+                margin-top: 15px;
+                display: flex;
+                align-items: center;
+                color: #12cc12;
+                text-shadow: 0 0 10px #12cc12;
+                font-size: 14px;
+            }
+
+            /* ТАБЛИЦА */
+            .peers-table-container {
+                position: relative;
+                margin-top: 20px;
+                padding: 0;
+                width: 100%;
+                grid-column: 1 / -1;
+                min-width: 0;
+                overflow: visible;
+            }
+
+            .section-title-table {
+                padding: 9px 10px;
+                margin-left: 45px;
+                color: black;
+                align-items: center;
+                background: #12cc12;
+                box-shadow:
+                    0 0 5px #12cc12,
+                    0 0 15px #12cc12,
+                    0 0 25px #12cc12;
+                font-size: 16px;
+            }
+
+            .table-scroll-wrapper {
+                width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+                margin-top: 15px;
+                padding-bottom: 10px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .peers-table {
+                width: 100%;
+                border-collapse: collapse;
+                color: #12cc12;
+                min-width: 600px;
+            }
+
+            .peers-table th {
+                padding: 10px;
+                text-align: left;
+                font-size: 14px;
+                color: #525252;
+                font-weight: normal;
+            }
+
+            .peers-table th span {
+                cursor: pointer;
+                transition: color 0.5s;
+            }
+
+            .peers-table th span:hover {
+                color: #12cc12;
+                text-shadow: 0 0 15px #12cc12;
+            }
+
+            .peers-table td {
+                padding: 5px 10px;
+                text-align: left;
+                font-size: 12px;
+                text-shadow: 0 0 15px #12cc12;
+            }
+
+            .peers-table tbody tr:hover td {
+                text-shadow: none;
+            }
+            .peers-table tbody tr:hover {
+                background-color: #fe9233;
+                color: black;
+            }
+
+            /* ОРИГИНАЛЬНЫЙ OFFLINE ASCII CONTAINER ДЛЯ ПК */
+            .offline-ascii-container {
+                position: fixed;
+                display: flex;
+                top: 520px;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                left: 0;
+            }
+
+            .offline-ascii {
+                text-align: center;
+                font-family: "Courier New", Courier, monospace;
+                color: #cc1212;
+                text-shadow: 0 0 20px #cc1212;
+                line-height: 1;
+                white-space: pre;
+                margin: 0;
+            }
+
+            /* ПИКСЕЛЬНЫЙ АРТ */
+            .pixel-flag {
+                display: inline-block;
+                width: 24px;
+                height: 15px;
+                margin-right: 12px;
+                overflow: hidden;
+                flex-shrink: 0;
+            }
+            .flag-red {
+                background-color: #ff0000;
+                height: 5px;
+                width: 100%;
+            }
+            .flag-white {
+                background-color: #ffffff;
+                height: 5px;
+                width: 100%;
+            }
+            .flag-blue {
+                background-color: #0000ff;
+                height: 5px;
+                width: 100%;
+            }
+
+            .pixel-clock {
+                --p: 2.5px;
+                width: calc(var(--p) * 9);
+                height: calc(var(--p) * 9);
+                position: relative;
+                display: inline-block;
+                background: #ffffff;
+                border: var(--p) solid #8a8a8a;
+                margin-right: 12px;
+                flex-shrink: 0;
+            }
+            .hand-hour,
+            .hand-minute {
+                position: absolute;
+                width: var(--p);
+                height: var(--p);
+                top: calc(var(--p) * 4);
+                left: calc(var(--p) * 4);
+                background: black;
+                transform: translate(calc(var(--p) * -1), calc(var(--p) * -1));
+            }
+            .hand-hour {
+                box-shadow:
+                    0 calc(var(--p) * -1) black,
+                    0 calc(var(--p) * -2) black;
+            }
+            .hand-minute {
+                box-shadow:
+                    calc(var(--p) * 1) 0 black,
+                    calc(var(--p) * 2) 0 black,
+                    calc(var(--p) * 3) 0 black;
+            }
+
+            .pixel-trophy {
+                --px: 3px;
+                width: var(--px);
+                height: var(--px);
+                display: inline-block;
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                z-index: 10;
+                box-shadow:
+                    calc(var(--px) * 3) 0 #c69200,
+                    calc(var(--px) * 4) 0 #ffd84d,
+                    calc(var(--px) * 5) 0 #fff0a6,
+                    calc(var(--px) * 6) 0 #fff0a6,
+                    calc(var(--px) * 7) 0 #fff0a6,
+                    calc(var(--px) * 8) 0 #ffd84d,
+                    calc(var(--px) * 9) 0 #c69200,
+                    calc(var(--px) * 2) calc(var(--px) * 1) #c69200,
+                    calc(var(--px) * 3) calc(var(--px) * 1) #ffd84d,
+                    calc(var(--px) * 4) calc(var(--px) * 1) #fff0a6,
+                    calc(var(--px) * 5) calc(var(--px) * 1) #fff8cc,
+                    calc(var(--px) * 6) calc(var(--px) * 1) #fff8cc,
+                    calc(var(--px) * 7) calc(var(--px) * 1) #fff8cc,
+                    calc(var(--px) * 8) calc(var(--px) * 1) #fff0a6,
+                    calc(var(--px) * 9) calc(var(--px) * 1) #ffd84d,
+                    calc(var(--px) * 10) calc(var(--px) * 1) #c69200,
+                    calc(var(--px) * 1) calc(var(--px) * 2) #a36d00,
+                    calc(var(--px) * 2) calc(var(--px) * 2) #c69200,
+                    calc(var(--px) * 3) calc(var(--px) * 2) #ffd84d,
+                    calc(var(--px) * 4) calc(var(--px) * 2) #fff0a6,
+                    calc(var(--px) * 5) calc(var(--px) * 2) #fff8cc,
+                    calc(var(--px) * 6) calc(var(--px) * 2) #fff8cc,
+                    calc(var(--px) * 7) calc(var(--px) * 2) #fff8cc,
+                    calc(var(--px) * 8) calc(var(--px) * 2) #fff0a6,
+                    calc(var(--px) * 9) calc(var(--px) * 2) #ffd84d,
+                    calc(var(--px) * 10) calc(var(--px) * 2) #c69200,
+                    calc(var(--px) * 11) calc(var(--px) * 2) #a36d00,
+                    calc(var(--px) * 1) calc(var(--px) * 3) #a36d00,
+                    calc(var(--px) * 11) calc(var(--px) * 3) #a36d00,
+                    calc(var(--px) * 3) calc(var(--px) * 3) #c69200,
+                    calc(var(--px) * 4) calc(var(--px) * 3) #ffd84d,
+                    calc(var(--px) * 5) calc(var(--px) * 3) #fff0a6,
+                    calc(var(--px) * 6) calc(var(--px) * 3) #fff8cc,
+                    calc(var(--px) * 7) calc(var(--px) * 3) #fff0a6,
+                    calc(var(--px) * 8) calc(var(--px) * 3) #ffd84d,
+                    calc(var(--px) * 9) calc(var(--px) * 3) #c69200,
+                    calc(var(--px) * 4) calc(var(--px) * 4) #c69200,
+                    calc(var(--px) * 5) calc(var(--px) * 4) #ffd84d,
+                    calc(var(--px) * 6) calc(var(--px) * 4) #fff0a6,
+                    calc(var(--px) * 7) calc(var(--px) * 4) #ffd84d,
+                    calc(var(--px) * 8) calc(var(--px) * 4) #c69200,
+                    calc(var(--px) * 5) calc(var(--px) * 5) #c69200,
+                    calc(var(--px) * 6) calc(var(--px) * 5) #ffd84d,
+                    calc(var(--px) * 7) calc(var(--px) * 5) #c69200,
+                    calc(var(--px) * 6) calc(var(--px) * 6) #a36d00,
+                    calc(var(--px) * 6) calc(var(--px) * 7) #a36d00,
+                    calc(var(--px) * 4) calc(var(--px) * 8) #6b4500,
+                    calc(var(--px) * 5) calc(var(--px) * 8) #8a5a00,
+                    calc(var(--px) * 6) calc(var(--px) * 8) #c69200,
+                    calc(var(--px) * 7) calc(var(--px) * 8) #8a5a00,
+                    calc(var(--px) * 8) calc(var(--px) * 8) #6b4500;
+            }
+
+            /* OFFLINE РЕЖИМ */
+            .dashboard-offline .status-widget {
+                background: #cc1212 !important;
+                color: black;
+                animation: glow-offline 6s infinite ease-in-out;
+            }
+            @keyframes glow-offline {
+                0%,
+                100% {
+                    box-shadow:
+                        0 0 10px #cc1212,
+                        0 0 15px #cc1212;
+                }
+                50% {
+                    box-shadow:
+                        0 0 15px #cc1212,
+                        0 0 20px #cc1212,
+                        0 0 25px #cc1212;
+                }
+            }
+            .dashboard-offline .section {
+                border-left-color: #cc1212;
+            }
+            .dashboard-offline .section-content {
+                color: #cc1212 !important;
+                text-shadow: 0 0 10px #cc1212;
+            }
+            .dashboard-offline .section-title {
+                background: #cc1212 !important;
+                box-shadow:
+                    0 0 5px #cc1212,
+                    0 0 10px #cc1212,
+                    0 0 25px #cc1212;
+            }
+            .dashboard-offline .widget-value {
+                color: #cc1212 !important;
+                text-shadow: 0 0 10px #cc1212;
+            }
+            .dashboard-offline .widget:hover {
+                border-color: #cc1212 !important;
+            }
+            .dashboard-offline .status-widget .widget-value {
+                color: black !important;
+            }
+            .dashboard-offline .flag-red,
+            .dashboard-offline .flag-white,
+            .dashboard-offline .flag-blue {
+                background-color: #333333 !important;
+            }
+            .dashboard-offline .pixel-flag {
+                border: 1px solid #555555;
+                box-sizing: border-box;
+            }
+
+            /* АНИМАЦИИ И ЛОГИ */
+            @keyframes blink {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0;
+                }
+            }
+            .log-info {
+                color: #12cc12;
+            }
+            .log-info.log-line {
+                text-shadow: 0 0 10px #12cc12;
+            }
+            .log-error {
+                color: #cc1212;
+            }
+            .log-error.log-line {
+                text-shadow: 0 0 10px #cc1212;
+            }
+            .log-command {
+                text-shadow: 0 0 10px #12cc12;
+            }
+            .log-line {
+                animation: appear 0.15s ease-out;
+            }
+            @keyframes appear {
+                from {
+                    opacity: 0;
+                    transform: translateY(2px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .cursor {
+                display: inline-block;
+                width: 10px;
+                height: 14px;
+                background-color: #12cc12;
+                animation: blink 1s step-end infinite;
+                vertical-align: middle;
+            }
+
+            /* ===== МЕДИА ЗАПРОСЫ (АДАПТИВ) ===== */
+
+            @media (min-width: 1025px) {
+                .peers-table-container {
+                    padding-left: 10px;
+                }
+            }
+
+            @media (max-width: 1024px) {
+                .dashboard-grid {
+                    grid-template-columns: repeat(6, 1fr);
+                }
+                .offline-ascii-container {
+                    position: relative;
+                    top: auto;
+                    left: auto;
+                    transform: none;
+                    margin-top: 40px;
+                    display: flex;
+                    justify-content: center;
+                }
+                .col-6,
+                .col-5,
+                .col-4,
+                .col-3 {
+                    grid-column: span 6;
+                }
+            }
+
+            @media (max-width: 768px) {
+                body {
+                    padding: 10px 0;
+                    gap: 5px;
+                    overflow-y: auto;
+                }
+
+                .header-container,
+                .main-container {
+                    margin: 0 10px;
+                    padding: 12px;
+                    border-width: 2px;
+                }
+
+                .header-container h1 {
+                    font-size: 14px;
+                    margin-bottom: 10px;
+                }
+
+                .instructions {
+                    font-size: 10px;
+                }
+
+                .dashboard-grid {
+                    grid-template-columns: 1fr;
+                    gap: 12px;
+                }
+
+                .col-6,
+                .col-5,
+                .col-4,
+                .col-3,
+                .col-12 {
+                    grid-column: span 1;
+                }
+
+                .widget {
+                    padding: 12px;
+                    border-width: 2px;
+                }
+
+                .widget-label {
+                    font-size: 10px;
+                    margin-bottom: 8px;
+                }
+
+                .widget-value {
+                    font-size: 11px;
+                    line-height: 1.4;
+                    word-break: break-all;
+                }
+
+                .status-widget {
+                    height: 45px;
+                }
+                .status-widget .widget-value {
+                    font-size: 16px;
+                    padding-top: 4px;
+                }
+
+                .section-title,
+                .section-title-table {
+                    font-size: 11px;
+                    padding: 6px 8px;
+                }
+
+                .section-title-table {
+                    margin-left: 0;
+                }
+
+                .section-content {
+                    font-size: 11px;
+                    margin-left: 10px;
+                    margin-top: 10px;
+                    flex-wrap: wrap;
+                }
+
+                .pixel-trophy {
+                    --px: 2px;
+                    top: 8px;
+                    left: 8px;
+                }
+
+                .terminal-output {
+                    font-size: 11px;
+                    line-height: 1.5;
+                }
+
+                .peers-table {
+                    min-width: 420px;
+                }
+
+                .table-scroll-wrapper {
+                    overflow-x: auto;
+                }
+
+                .peers-table-container {
+                    width: 100%;
+                    overflow: visible;
+                }
+
+                .pixel-trophy {
+                    display: none;
+                }
+
+                .offline-ascii-container {
+                    display: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header-container">
+            <h1>VPN_STATS v1.0</h1>
+            <p class="instructions">availability monitoring dashboard</p>
+        </div>
+
+        <div class="main-container">
+            <div class="terminal-output" id="terminalOutput"></div>
+
+            <div class="dashboard-grid" id="dashboard" style="display: none">
+                <div class="widget col-5 status-widget">
+                    <div class="widget-value" id="val-status">--</div>
+                </div>
+
+                <div class="section col-4">
+                    <div class="section-title">Location</div>
+                    <div class="section-content">
+                        <div class="pixel-flag">
+                            <div class="flag-red"></div>
+                            <div class="flag-white"></div>
+                            <div class="flag-blue"></div>
+                        </div>
+                        <span id="val-location">--</span>
+                    </div>
+                </div>
+
+                <div class="section col-3">
+                    <div class="section-title">Uptime</div>
+                    <div class="section-content">
+                        <div class="pixel-clock">
+                            <div class="hand-hour"></div>
+                            <div class="hand-minute"></div>
+                        </div>
+                        <span id="val-uptime">--</span>
+                    </div>
+                </div>
+
+                <div class="widget col-4">
+                    <div class="widget-label">PING (1.1.1.1)</div>
+                    <div class="widget-value" id="val-ping">--</div>
+                </div>
+
+                <div class="widget col-4">
+                    <div class="widget-label">PEERS (ACTIVE/TOTAL)</div>
+                    <div class="widget-value">
+                        <span id="val-active">0</span> /
+                        <span id="val-total">0</span>
+                    </div>
+                </div>
+
+                <div class="widget col-4">
+                    <div class="widget-label">ENDPOINT</div>
+                    <div class="widget-value" id="val-endpoint">--</div>
+                </div>
+
+                <div class="widget col-6">
+                    <div class="widget-label">TOTAL RX (DOWNLOAD)</div>
+                    <div class="widget-value" id="val-rx">0 B</div>
+                </div>
+
+                <div class="widget col-6">
+                    <div class="widget-label">TOTAL TX (UPLOAD)</div>
+                    <div class="widget-value" id="val-tx">0 B</div>
+                </div>
+                <div class="peers-table-container col-12">
+                    <div class="pixel-trophy"></div>
+
+                    <div class="section-title-table">
+                        Top 5 peers by traffic
+                    </div>
+
+                    <div class="table-scroll-wrapper">
+                        <table class="peers-table">
+                            <thead>
+                                <tr>
+                                    <th>PEER</th>
+                                    <th>
+                                        <span
+                                            style="cursor: pointer"
+                                            onclick="updatePeersTable('rx')"
+                                        >
+                                            RX (↓)
+                                        </span>
+                                    </th>
+                                    <th>
+                                        <span
+                                            style="cursor: pointer"
+                                            onclick="updatePeersTable('tx')"
+                                        >
+                                            TX (↓)
+                                        </span>
+                                    </th>
+                                    <th>
+                                        <span
+                                            style="cursor: pointer"
+                                            onclick="updatePeersTable('total')"
+                                        >
+                                            TOTAL (↓)
+                                        </span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="peers-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const API_URL = "https://vpn.xvnvdu.xyz/api/info";
+            let allPeers = [];
+            let currentSort = "total";
+
+            const terminal = document.getElementById("terminalOutput");
+            const dashboard = document.getElementById("dashboard");
+
+            function formatBytes(bytes) {
+                if (bytes === 0) return "0 B";
+                const k = 1024;
+                const sizes = ["B", "KB", "MB", "GB", "TB"];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return (
+                    parseFloat((bytes / Math.pow(k, i)).toFixed(2)) +
+                    " " +
+                    sizes[i]
+                );
+            }
+
+            function printLog(message, type = "info") {
+                const div = document.createElement("div");
+
+                div.classList.add("log-line", `log-${type}`);
+
+                if (type === "command") {
+                    div.innerHTML = `~$ ${message}`;
+                } else if (type === "info") {
+                    div.innerHTML = `<span class="log-info">[INFO]</span> ${message}`;
+                } else if (type === "error") {
+                    div.innerHTML = `<span class="log-error">[ERROR]</span> ${message}`;
+                }
+                terminal.appendChild(div);
+            }
+
+            function updatePeersTable(peers) {
+                const tbody = document.getElementById("peers-body");
+                tbody.innerHTML = "";
+
+                const topPeers = peers
+                    .sort(
+                        (a, b) =>
+                            b.rx_bytes + b.tx_bytes - (a.rx_bytes + a.tx_bytes),
+                    )
+                    .slice(0, 5);
+
+                topPeers.forEach((peer) => {
+                    const row = `<tr>
+            <td>[${peer.name}] ${shortKey}</td>
+            <td>${formatBytes(peer.rx_bytes)}</td>
+            <td>${formatBytes(peer.tx_bytes)}</td>
+            <td>${formatBytes(peer.total_data)}</td>
+        </tr>`;
+                    tbody.innerHTML += row;
+                });
+            }
+
+            function updatePeersTable(sortType = "total") {
+                currentSort = sortType;
+                const tbody = document.getElementById("peers-body");
+                tbody.innerHTML = "";
+
+                const sorted = [...allPeers].sort((a, b) => {
+                    if (sortType === "rx") return b.rx_bytes - a.rx_bytes;
+                    if (sortType === "tx") return b.tx_bytes - a.tx_bytes;
+                    return b.rx_bytes + b.tx_bytes - (a.rx_bytes + a.tx_bytes);
+                });
+
+                sorted.slice(0, 5).forEach((peer) => {
+                    const shortKey =
+                        peer.public_key.length > 12
+                            ? peer.public_key.substring(0, 8) +
+                              "..." +
+                              peer.public_key.slice(-4)
+                            : peer.public_key;
+
+                    tbody.innerHTML += `<tr>
+            <td>
+                <span style="display: inline-block; width: 120px;">[${peer.name}]</span>
+                <span>${shortKey}</span>
+            </td>
+            <td>${formatBytes(peer.rx_bytes)}</td>
+            <td>${formatBytes(peer.tx_bytes)}</td>
+            <td>${formatBytes(peer.total_data)}</td>
+        </tr>`;
+                });
+            }
+
+            async function runMonitor() {
+                terminal.innerHTML = "";
+                dashboard.style.display = "none";
+                terminal.style.display = "block";
+
+                printLog("vpnctl status wg0 --live", "command");
+
+                await new Promise((r) => setTimeout(r, 300));
+                printLog("Establishing secure connection...", "info");
+
+                await new Promise((r) => setTimeout(r, 300));
+                printLog(`Fetching metrics from remote database...`, "info");
+
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(
+                        () => controller.abort(),
+                        5000,
+                    );
+                    const response = await fetch(API_URL, {
+                        signal: controller.signal,
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) throw new Error("Bad HTTP response");
+
+                    const data = await response.json();
+                    allPeers = data.peers;
+                    updatePeersTable("total");
+
+                    await new Promise((r) => setTimeout(r, 300));
+                    printLog("Metrics retrieved successfully.", "info");
+
+                    await new Promise((r) => setTimeout(r, 300));
+                    printLog("Building modular dashboard UI...", "info");
+
+                    setTimeout(() => {
+                        terminal.style.display = "none";
+                        dashboard.style.display = "grid";
+
+                        dashboard.classList.remove("dashboard-offline");
+
+                        const statusCard =
+                            document.querySelector(".status-widget");
+                        if (statusCard)
+                            statusCard.classList.remove("status-offline-card");
+
+                        const statusEl = document.getElementById("val-status");
+                        statusEl.innerHTML =
+                            '<span class="blink-dot"></span> <span>ONLINE</span>';
+                        document.getElementById("val-uptime").textContent =
+                            data.uptime;
+                        document.getElementById("val-ping").textContent =
+                            data.ping;
+                        document.getElementById("val-location").textContent =
+                            data.location.toUpperCase();
+                        document.getElementById("val-endpoint").textContent =
+                            data.endpoint;
+                        document.getElementById("val-active").textContent =
+                            data.active_peers;
+                        document.getElementById("val-total").textContent =
+                            data.total_peers;
+                        document.getElementById("val-rx").textContent =
+                            formatBytes(data.rx_bytes);
+                        document.getElementById("val-tx").textContent =
+                            formatBytes(data.tx_bytes);
+
+                        if (data.peers && Array.isArray(data.peers)) {
+                            updatePeersTable(data.peers);
+                        }
+
+                        if (data.peers && data.peers.length > 0) {
+                            document.querySelector(
+                                ".peers-table-container",
+                            ).style.display = "block";
+                            allPeers = data.peers;
+                            updatePeersTable("total");
+                        }
+                    }, 600);
+                } catch (error) {
+                    console.error(error);
+
+                    await new Promise((r) => setTimeout(r, 500));
+                    printLog("Connection timeout or CORS error.", "error");
+                    printLog("Server is offline or unreachable.", "error");
+
+                    await new Promise((r) => setTimeout(r, 800));
+                    printLog("Loading offline fallback dashboard...", "info");
+
+                    setTimeout(() => {
+                        terminal.style.display = "none";
+                        dashboard.style.display = "grid";
+
+                        dashboard.classList.add("dashboard-offline");
+
+                        const statusEl = document.getElementById("val-status");
+                        statusEl.innerHTML = "OFFLINE";
+
+                        document.getElementById("val-uptime").textContent =
+                            "N/A";
+                        document.getElementById("val-ping").textContent =
+                            "TIMEOUT";
+                        document.getElementById("val-location").textContent =
+                            "UNKNOWN";
+                        document.getElementById("val-endpoint").textContent =
+                            "UNREACHABLE";
+                        document.getElementById("val-active").textContent = "0";
+                        document.getElementById("val-total").textContent = "0";
+                        document.getElementById("val-rx").textContent = "0 B";
+                        document.getElementById("val-tx").textContent = "0 B";
+
+                        document.querySelector(
+                            ".peers-table-container",
+                        ).style.display = "none";
+
+                        const asciiHTML = `
+<div class="offline-ascii-container">
+    <pre class="offline-ascii">
+███╗   ██╗ ██████╗     ███████╗██╗ ██████╗ ███╗   ██╗ █████╗ ██╗     
+████╗  ██║██╔═══██╗    ██╔════╝██║██╔════╝ ████╗  ██║██╔══██╗██║     
+██╔██╗ ██║██║   ██║    ███████╗██║██║  ███╗██╔██╗ ██║███████║██║     
+██║╚██╗██║██║   ██║    ╚════██║██║██║   ██║██║╚██╗██║██╔══██║██║     
+██║ ╚████║╚██████╔╝    ███████║██║╚██████╔╝██║ ╚████║██║  ██║███████╗
+╚═╝  ╚═══╝ ╚═════╝     ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
+    </pre>
+</div>
+`;
+
+                        if (
+                            !document.querySelector(".offline-ascii-container")
+                        ) {
+                            document.body.insertAdjacentHTML(
+                                "beforeend",
+                                asciiHTML,
+                            );
+                        }
+                    }, 800);
+                }
+            }
+
+            runMonitor();
+        </script>
+    </body>
+</html>
