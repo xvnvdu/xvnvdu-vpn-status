@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="black"/>
+  
+  <text x="5" y="80" font-family="monospace" font-weight="bold" font-size="65" fill="#12cc12">>_</text>
+  
+  <path d="M 62 36 V 25 A 12 12 0 0 1 83 25 V 36" fill="none" stroke="#fe9233" stroke-width="4"/>
+  
+  <rect x="56" y="35" width="33" height="30" rx="3" fill="#fe9233"/>
+  
+  <rect x="70" y="44" width="5" height="11" rx="1" fill="black"/>
+</svg>
