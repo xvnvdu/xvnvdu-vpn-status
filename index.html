@@ -898,6 +898,37 @@
                 });
             }
 
+            // Экспоненциальный ретрай против ложного офлайна при медленном инете
+            async function fetchWithRetry(url, retries = 5, timeout = 1000) {
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(
+                            () => controller.abort(),
+                            timeout,
+                        );
+
+                        const response = await fetch(url, {
+                            signal: controller.signal,
+                        });
+                        clearTimeout(timeoutId);
+
+                        if (!response.ok) throw new Error("Bad HTTP response");
+                        return await response.json();
+                    } catch (err) {
+                        const isLast = i === retries - 1;
+                        if (isLast) throw err;
+
+                        const delay = 1000 * Math.pow(2, i);
+                        printLog(
+                            `Retrying... attempt ${i + 2}/${retries}`,
+                            "info",
+                        );
+                        await new Promise((r) => setTimeout(r, delay));
+                    }
+                }
+            }
+
             async function runMonitor() {
                 terminal.innerHTML = "";
                 dashboard.style.display = "none";
@@ -917,14 +948,10 @@
                         () => controller.abort(),
                         5000,
                     );
-                    const response = await fetch(API_URL, {
-                        signal: controller.signal,
-                    });
+
                     clearTimeout(timeoutId);
 
-                    if (!response.ok) throw new Error("Bad HTTP response");
-
-                    const data = await response.json();
+                    const data = await fetchWithRetry(API_URL);
                     allPeers = data.peers;
                     updatePeersTable("total");
 
