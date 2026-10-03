@@ -337,6 +337,12 @@
                 width: 100%;
             }
 
+            .flag {
+                margin-right: 0.7rem;
+                font-size: 18px;
+                margin-bottom: 3px;
+            }
+
             .pixel-clock {
                 --p: 2.5px;
                 width: calc(var(--p) * 9);
@@ -723,11 +729,7 @@
                 <div class="section col-4">
                     <div class="section-title">Location</div>
                     <div class="section-content">
-                        <div class="pixel-flag">
-                            <div class="flag-red"></div>
-                            <div class="flag-white"></div>
-                            <div class="flag-blue"></div>
-                        </div>
+                        <div class="flag" id="val-flag">--</div>
                         <span id="val-location">--</span>
                     </div>
                 </div>
@@ -988,6 +990,8 @@
                             data.uptime;
                         document.getElementById("val-ping").textContent =
                             data.ping;
+                        document.getElementById("val-flag").textContent =
+                            data.flag;
                         document.getElementById("val-location").textContent =
                             data.location.toUpperCase();
                         document.getElementById("val-endpoint").textContent =
